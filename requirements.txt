@@ -1,0 +1,10 @@
+# requirements.txt
+pandas~=2.2.3
+numpy~=1.26.4
+nltk~=3.8.1
+scikit-learn~=1.6.1
+joblib~=1.4.2
+Flask~=3.0.3
+openpyxl~=3.1.5
+gunicorn
+werkzeug~=3.0.3

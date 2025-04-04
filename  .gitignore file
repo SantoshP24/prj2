@@ -1,0 +1,30 @@
+# Virtual Environment
+venv/
+*.venv/
+env/
+*.env/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE specific files (optional, examples)
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Dataset files (RECOMMENDED - often large/private)
+# *.csv
+# *.xlsx
+# *.xls
+# Uncomment the lines above if you want to explicitly ignore datasets
+
+# OS generated files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hate Speech & Offensive Language Detection</title> <!-- Updated Title -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Merriweather:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background-color: #f8f9fa;
+            --content-bg-color: #ffffff;
+            --text-color: #343a40;
+            --secondary-text-color: #6c757d;
+            --border-color: #dee2e6;
+            --header-bg-color: #212529;
+            --header-text-color: #f8f9fa;
+            --button-bg-color: #343a40;
+            --button-text-color: #ffffff;
+            --button-hover-bg-color: #495057;
+            --error-border-color: #dc3545;
+            --error-text-color: #721c24;
+            --error-bg-color: #f8d7da;
+            --info-border-color: #17a2b8;
+            --info-text-color: #0c5460;
+            --info-bg-color: #d1ecf1;
+            /* --- Updated Border Colors for 3 Classes --- */
+            --hate-speech-border: #dc3545;     /* Red for Hate */
+            --offensive-lang-border: #fd7e14; /* Orange for Offensive */
+            --neither-border: #6c757d;        /* Gray for Neither */
+            --border-radius: 6px;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            --enhanced-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            --heading-font: 'Merriweather', serif;
+            --body-font: 'Lato', sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--body-font);
+            line-height: 1.7; margin: 0; padding: 0;
+            background-color: var(--background-color); color: var(--text-color);
+            opacity: 0; animation: fadeInBody 0.5s 0.1s ease-out forwards;
+        }
+        .header-bar { /* (Keep existing header styles) */
+             background-color: var(--header-bg-color); color: var(--header-text-color); padding: 1em 2.5em;
+             display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+             position: sticky; top: 0; z-index: 1000;
+        }
+        .header-bar .logo h1 { /* (Keep existing logo styles) */
+             margin: 0; font-family: var(--heading-font); font-size: 1.9rem; font-weight: 900; letter-spacing: 1px;
+             color: var(--header-text-color); text-transform: uppercase; display: flex; align-items: center; transition: transform 0.2s ease-out;
+        }
+         .header-bar .logo h1:hover { transform: scale(1.02); }
+        .header-bar .logo h1 .icon { margin-right: 0.5em; font-size: 1.6rem; opacity: 0.9; }
+        .header-bar nav a { /* (Keep existing nav styles) */
+             color: var(--header-text-color); text-decoration: none; margin-left: 1.8em; font-size: 1rem;
+             transition: color 0.2s ease, opacity 0.2s ease; opacity: 0.85; font-weight: 400;
+        }
+         .header-bar nav a:hover { opacity: 1; color: #ffffff; text-decoration: none; }
+        .content-section { /* (Keep existing section styles) */
+             padding: 3em 3.5em; max-width: 850px; margin: 2em auto 3em auto; background-color: var(--content-bg-color);
+             border-radius: var(--border-radius); box-shadow: var(--box-shadow); opacity: 0; transform: translateY(20px);
+             animation: slideUpFadeIn 0.6s ease-out forwards;
+        }
+        #analysis-section { animation-delay: 0.2s; margin-top: 4em; }
+        #about { animation-delay: 0.3s; }
+        #contact { animation-delay: 0.4s; }
+        .section-title { /* (Keep existing title styles) */
+             font-family: var(--heading-font); font-size: 1.8rem; font-weight: 700; margin-bottom: 1.2em; color: var(--text-color);
+             border-bottom: 3px solid var(--border-color); padding-bottom: 0.5em; display: flex; align-items: center;
+        }
+         .section-title .icon { margin-right: 0.5em; font-size: 1.6rem; opacity: 0.85; color: var(--button-bg-color); }
+        .intro-text { color: var(--secondary-text-color); margin-bottom: 1.5em; text-align: center; font-size: 1.1rem; }
+        label { /* (Keep existing label styles) */
+             font-weight: 700; display: block; margin-bottom: 0.8em; font-size: 0.9rem; text-transform: uppercase;
+             letter-spacing: 0.8px; color: var(--text-color);
+        }
+        textarea { /* (Keep existing textarea styles) */
+            width: 100%; padding: 18px; margin-bottom: 1.8em; border: 1px solid var(--border-color);
+            border-radius: var(--border-radius); min-height: 120px; resize: vertical; font-size: 1.05rem;
+            font-family: var(--body-font); box-sizing: border-box; transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background-color: #fff;
+        }
+        textarea:focus { border-color: var(--button-hover-bg-color); outline: none; box-shadow: 0 0 0 3px rgba(52, 58, 64, 0.15); }
+        .file-upload-area { border-top: 1px dashed var(--border-color); margin-top: 3em; padding-top: 2.5em; }
+        .file-input-wrapper { /* (Keep existing file input styles) */
+             border: 2px dashed var(--border-color); padding: 2em; border-radius: var(--border-radius); text-align: center;
+             cursor: pointer; transition: border-color 0.2s, background-color 0.2s, transform 0.2s; margin-bottom: 1em; background-color: #fdfdfd;
+        }
+        .file-input-wrapper:hover { border-color: var(--secondary-text-color); background-color: #f8f9fa; transform: translateY(-2px); }
+        input[type="file"] { display: none; }
+        .file-upload-text { color: var(--secondary-text-color); font-size: 1.05rem; }
+        #file-name { font-weight: bold; color: var(--text-color); margin-top: 0.7em; display: block; font-size: 0.95rem; }
+        .instructions { font-size: 0.9em; color: #777; margin-top: 1em; }
+        button { /* (Keep existing button styles) */
+             display: block; width: 100%; padding: 16px 25px; background-color: var(--button-bg-color); color: var(--button-text-color);
+             border: none; border-radius: var(--border-radius); cursor: pointer; font-size: 1.15rem; font-weight: 700; letter-spacing: 1px;
+             transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; text-transform: uppercase;
+             display: flex; align-items: center; justify-content: center; margin-top: 2.5em; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+         button .icon { margin-right: 0.6em; font-size: 1.25rem; }
+         button:hover { background-color: var(--button-hover-bg-color); transform: translateY(-3px); box-shadow: var(--enhanced-shadow); }
+
+        /* --- Results & Errors --- */
+        .results-wrapper { margin-top: 3.5em; }
+        .result-section, .error-message, .info-message { /* (Keep general result styles) */
+            padding: 2em; border-radius: var(--border-radius); border: 1px solid var(--border-color); background-color: var(--content-bg-color);
+            animation: fadeIn 0.5s 0.1s ease-in-out forwards; opacity: 0; border-left-width: 6px; border-left-style: solid;
+            margin-bottom: 1.5em; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        /* *** Apply border color based on 3-class prediction (Jinja filter replaces space/slash) *** */
+        .result-section.Hate_Speech { border-left-color: var(--hate-speech-border); }
+        .result-section.Offensive_Language { border-left-color: var(--offensive-lang-border); }
+        .result-section.Neither { border-left-color: var(--neither-border); }
+
+        .error-message { /* (Keep existing error styles) */
+            border-color: var(--error-border-color); border-left-color: var(--error-border-color); color: var(--error-text-color);
+            background-color: var(--error-bg-color); font-weight: bold;
+        }
+        .info-message { /* (Keep existing info styles) */
+            border-color: var(--info-border-color); border-left-color: var(--info-border-color); color: var(--info-text-color);
+            background-color: var(--info-bg-color);
+        }
+        .error-message .icon, .info-message .icon { margin-right: 0.5em; font-size: 1.2em; }
+
+        .result-section h3, .info-message h3 { /* (Keep existing result header styles) */
+            margin-top: 0; font-family: var(--heading-font); font-size: 1.4rem; font-weight: 700; margin-bottom: 1.2em;
+            padding-bottom: 0.7em; border-bottom: 1px solid var(--border-color); color: var(--text-color);
+            text-transform: uppercase; letter-spacing: 1.2px; display: flex; align-items: center;
+        }
+         .result-section h3 .icon, .info-message h3 .icon { margin-right: 0.5em; font-size: 1.4rem; }
+        .result-section p { text-align: left; margin-bottom: 1em; color: var(--text-color); display: flex; align-items: center; font-size: 1.1rem; }
+        .result-section p .icon { margin-right: 0.6em; font-size: 1.3rem; opacity: 0.9; }
+
+        .probabilities { /* (Keep existing probability section styles) */
+            margin-top: 1.8em; font-size: 1rem; color: var(--secondary-text-color); border-top: 1px dashed var(--border-color); padding-top: 1.8em;
+        }
+        .probabilities h4 { margin-top: 0; margin-bottom: 1.2em; font-weight: 700; color: var(--text-color); font-size: 1.1rem; display: flex; align-items: center; }
+         .probabilities h4 .icon { margin-right: 0.5em; font-size: 1.15rem; opacity: 0.85; }
+        /* Adjust min-width if needed for longer labels */
+        .probabilities strong.label { display: inline-block; min-width: 160px; font-weight: 700; margin-right: 12px; color: var(--text-color); }
+        .probabilities span.score { font-weight: 700; color: var(--text-color); font-size: 1.05rem; }
+        .probabilities div { margin-bottom: 0.8em; padding-left: 1.8em; position: relative; }
+        .probabilities div::before { content: '▶'; position: absolute; left: 0.3em; color: var(--button-hover-bg-color); font-size: 1rem; line-height: 1.7; }
+
+        #about, #contact { border-top: 1px solid var(--border-color); margin-top: 3.5em; padding-top: 3em; }
+        #about p, #contact p { color: var(--secondary-text-color); text-align: left; margin-bottom: 1.2em; font-size: 1.05rem; }
+        #about ul { list-style: none; padding-left: 1em; margin-top: 1em;}
+        #about li { margin-bottom: 0.8em; position: relative; padding-left: 1.5em; }
+        #about li::before { content: '✓'; position: absolute; left: 0; color: var(--button-hover-bg-color); font-weight: bold; }
+        #contact ul { list-style: none; padding: 0; }
+        #contact li { margin-bottom: 1em; color: var(--secondary-text-color); display: flex; align-items: center; font-size: 1.05rem; }
+        #contact li .icon { margin-right: 0.8em; width: 22px; text-align: center; opacity: 0.9; font-size: 1.2rem; color: var(--button-bg-color); }
+        #contact strong { color: var(--text-color); min-width: 90px; display: inline-block; }
+        #contact a { color: var(--button-bg-color); text-decoration: none; transition: color 0.2s ease; }
+        #contact a:hover { color: var(--button-hover-bg-color); text-decoration: underline; }
+        .footer { /* (Keep existing footer styles) */
+             background-color: var(--header-bg-color); color: var(--secondary-text-color); text-align: center; padding: 2em 2.5em;
+             margin-top: 5em; border-top: 3px solid var(--button-bg-color); font-size: 0.95rem;
+        }
+        .footer p { margin: 0; color: #adb5bd; }
+        .footer a { color: #dee2e6; text-decoration: none; transition: color 0.2s ease; }
+        .footer a:hover { color: #ffffff; }
+        @keyframes fadeInBody { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUpFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <header class="header-bar">
+        <div class="logo">
+             <h1><span class="icon">🚦</span> Text Classifier</h1> <!-- Updated Icon/Title -->
+        </div>
+        <nav>
+            <a href="#analysis-section">Analyze</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+
+    <main id="analysis-section" class="content-section">
+        <h2 class="section-title"><span class="icon">📝</span> Analyze Text Content</h2>
+         <!-- Updated Intro Text -->
+        <p class="intro-text">Enter text below or upload a file to classify the content as <strong>Hate Speech</strong>, <strong>Offensive Language</strong>, or <strong>Neither</strong> using our machine learning model.</p>
+
+        <form action="/predict" method="post" enctype="multipart/form-data">
+             <div>
+                 <label for="text_input">Option 1: Analyze Single Text</label>
+                 <textarea id="text_input" name="text_input" rows="5" placeholder="Paste or type your content here...">{{ submitted_text or '' }}</textarea>
+             </div>
+             <div class="file-upload-area">
+                 <label for="file_upload_input" class="label-above">Option 2: Upload File for Batch Analysis</label>
+                 <label for="file_upload_input" class="file-input-wrapper">
+                     <span class="file-upload-text">Click or Drag File Here (CSV, XLSX, XLS)</span>
+                     <input type="file" id="file_upload_input" name="file_upload" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                     <span id="file-name">No file selected</span>
+                  </label>
+                  <p class="instructions">
+                     Ensure your file has a column named '<strong>Content</strong>'. Results (Prediction and Confidences for <strong>Hate Speech / Offensive Language / Neither</strong>) will be provided as a downloadable CSV file.
+                  </p>
+             </div>
+             <button type="submit"><span class="icon">🔍</span> Classify Content</button> <!-- Updated Button Text -->
+         </form>
+
+
+        <div class="results-wrapper">
+            <!-- Error Message Display -->
+            {% if error_message %}
+                <div class="error-message">
+                     <span class="icon">⚠️</span> <strong>Error:</strong> {{ error_message }}
+                </div>
+            {% endif %}
+             <!-- Info Message Display -->
+             {% if info_message %}
+                 <div class="info-message">
+                      <h3><span class="icon">ℹ️</span> Status</h3>
+                      <p>{{ info_message }}</p>
+                 </div>
+             {% endif %}
+
+            <!-- Single Text Result Display -->
+            {% if prediction_text and not error_message %}
+                 <!-- *** Add class based on 3-class prediction (replace space) *** -->
+                <div class="result-section {{ prediction_text | replace(' ', '_') }}">
+                    <h3><span class="icon">📊</span> Analysis Report (Single Text)</h3>
+                    <p>
+                         <!-- *** Conditional Icon based on 3 classes *** -->
+                        {% if prediction_text == 'Hate Speech' %}
+                            <span class="icon">🚫</span> <!-- Stop sign for Hate -->
+                        {% elif prediction_text == 'Offensive Language' %}
+                            <span class="icon">⚠️</span> <!-- Warning sign for Offensive -->
+                        {% elif prediction_text == 'Neither' %}
+                             <span class="icon">✅</span> <!-- Check mark for Neither -->
+                        {% else %}
+                             <span class="icon">❓</span> <!-- Unknown -->
+                        {% endif %}
+                        <strong>Classification:</strong> {{ prediction_text }}
+                    </p>
+                    <!-- Display Probabilities for all 3 classes if available -->
+                    {% if probabilities %}
+                        <div class="probabilities">
+                            <h4><span class="icon">📈</span>Confidence Breakdown:</h4>
+                            {% for label, score in probabilities.items() %}
+                               <div><strong class="label">{{ label }}:</strong> <span class="score">{{ score }}</span></div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- About Section -->
+    <section id="about" class="content-section">
+        <h2 class="section-title"><span class="icon">ℹ️</span> About This Tool</h2>
+        <!-- Updated About Text -->
+        <p>
+            This tool utilizes a Machine Learning model trained to classify text content into three categories: <strong>Hate Speech</strong>, <strong>Offensive Language</strong>, or <strong>Neither</strong>. It analyzes the input based on patterns learned from combined datasets containing examples of each type.
+        </p>
+         <p>
+             The distinction between "Hate Speech" (often targeted, discriminatory) and "Offensive Language" (potentially vulgar, insulting, but not necessarily targeted hate) is based on the annotations in the original training data (specifically the `hate.csv` dataset). The "Neither" category includes text determined to be non-offensive and non-hateful.
+         </p>
+        <p>
+            <strong>Important Considerations:</strong>
+            <ul>
+                <li>The model's accuracy, especially for the "Offensive Language" category, depends heavily on the quality and quantity of examples in the training data.</li>
+                <li>Context, intent, and cultural nuances are extremely difficult for automated systems to grasp perfectly. Sarcasm may be misinterpreted.</li>
+                <li>This tool provides a probabilistic classification, not a definitive judgment. False positives and false negatives are always possible.</li>
+                <li>Results should be used as a signal or guide, always supplemented by human review for critical decisions or content moderation.</li>
+            </ul>
+        </p>
+    </section>
+
+    <!-- Contact Section (Identical) -->
+    <section id="contact" class="content-section">
+         <h2 class="section-title"><span class="icon">✉️</span> Contact Information</h2>
+         <p>For inquiries, feedback, or reporting issues regarding this Text Classification tool, please use the placeholder details below.</p>
+         <ul>
+            <li><span class="icon">📧</span><strong>Email:</strong> <a href="mailto:support@textclassifier.example.com">support@textclassifier.example.com</a></li>
+            <li><span class="icon">📞</span><strong>Phone:</strong> +1 (555) 987-6543</li>
+            <li><span class="icon">🏢</span><strong>Address:</strong> 456 Ethics Drive, Insight City, CA 90210</li>
+            <li><span class="icon">🕒</span><strong>Support Hours:</strong> Mon-Fri, 9:00 AM - 5:00 PM (PT)</li>
+         </ul>
+    </section>
+
+    <!-- Footer Section (Identical) -->
+    <footer class="footer">
+        <p>© 2024 Text Classification Project. All Rights Reserved. | <a href="#">Privacy Policy</a> | <a href="#analysis-section">Back to Top</a></p>
+    </footer>
+
+    <!-- JS for filename display (Identical) -->
+    <script>
+        const fileInput = document.getElementById('file_upload_input');
+        const fileNameDisplay = document.getElementById('file-name');
+        if (fileInput && fileNameDisplay) {
+            fileInput.addEventListener('change', function() {
+                if (fileInput.files.length > 0) {
+                    fileNameDisplay.textContent = `Selected: ${fileInput.files[0].name}`;
+                    fileNameDisplay.style.color = 'var(--text-color)';
+                } else {
+                    fileNameDisplay.textContent = 'No file selected';
+                    fileNameDisplay.style.color = 'var(--secondary-text-color)';
+                }
+            });
+        } else {
+            console.error("File input or file name display element not found.");
+        }
+    </script>
+
+</body>
+</html>
